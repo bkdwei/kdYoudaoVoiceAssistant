@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include install_script.py
+include kdYoudaoVoiceAssistant/*.ui
+include kdYoudaoVoiceAssistant/data/*.png
+include kdYoudaoVoiceAssistant/appKey_config.json
