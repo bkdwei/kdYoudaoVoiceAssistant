@@ -8,6 +8,8 @@ import time
 import requests
 import json
 import base64
+# import md5
+import wave
 from  urllib.parse import urlencode,quote
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot
@@ -15,7 +17,7 @@ from PyQt5.QtWidgets import QWidget,QFileDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.uic import loadUi
 from . import from_to_type
-from .fileutil import get_file_realpath,check_and_create
+from .fileutil import get_file_realpath,check_and_create_file,cur_dir
 
 
 class kdYoudaoVoiceAssistant(QWidget):
@@ -29,7 +31,7 @@ class kdYoudaoVoiceAssistant(QWidget):
 #             self.cb_from_to.addItem(translate_type[1])
 
         appKey_config_file = get_file_realpath("appKey_config.json")
-        check_and_create(appKey_config_file)
+        check_and_create_file(appKey_config_file)
         with open(appKey_config_file, "r",encoding="utf-8") as f:
             content = f.read().strip()
             if content != "":
@@ -41,7 +43,7 @@ class kdYoudaoVoiceAssistant(QWidget):
     def on_pb_open_file_clicked(self):
         fileName1, _ = QFileDialog.getOpenFileName(self,
                                     "选择文件",
-                                    os.environ["HOME"],
+                                   cur_dir,
                                     "All Files (*.wav)")   #设置文件扩展名过滤,注意用双分号间隔
         if fileName1:
             self.voice_file = fileName1
@@ -49,6 +51,7 @@ class kdYoudaoVoiceAssistant(QWidget):
 
     @pyqtSlot()
     def on_pb_transfer_to_text_clicked(self):
+#         file_to_play = wave.open(self.voice_file, 'rb')
         with open(self.voice_file,"rb") as vf:
             vf_ctx = vf.read()
             self.vf_base64 = base64.b64encode(vf_ctx)
@@ -84,12 +87,14 @@ class kdYoudaoVoiceAssistant(QWidget):
         print("入參:",params)
         self.tb_result.append("入參:"+str(params))
         self.tb_result.moveCursor(self.tb_result.textCursor().End)
+        
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
         r = requests.post(
-            "http://openapi.youdao.com/asrapi", params=params)
-        print("结果："+r.text)
-        self.tb_result.append("结果："+r.text)
+            "http://openapi.youdao.com/asrapi", params=params,headers = headers)
+        print("结果："+r.content)
+        self.tb_result.append("结果："+r.content)
         self.tb_result.moveCursor(self.tb_result.textCursor().End)
-        result = json.loads(r.text)
+        result = json.loads(r.content)
 
         if result["errorCode"] != "0":
             pass
